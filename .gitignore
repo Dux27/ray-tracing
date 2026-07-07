@@ -9,6 +9,7 @@ build/
 *.vcxproj.user
 *.vcxproj.filters
 *.sln
+imgui.ini
 
 # Exclude
 !vendor/bin
