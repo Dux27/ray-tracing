@@ -14,6 +14,7 @@ public:
 	virtual void OnUIRender() override
 	{
 		ImGui::Begin("Settings");
+		ImGui::Text("Viewport size: (%i, %i)", m_ViewportWidth, m_ViewportHeight);
 		ImGui::Text("Last reder time: %.3fms", m_LastRenderTimer);
 		if (ImGui::Button("Render"))
 		{
@@ -56,9 +57,13 @@ public:
 
 		for (uint32_t i = 0; i < m_ViewportHeight * m_ViewportWidth; i++)
 		{
+			int x = i % m_ViewportWidth;
+			int y = i / m_ViewportWidth;
+			m_ImageData[i] = CreateCircle(x, y, 0, 0, 0.4);
+			
 			// RGBA is reversed: ABGR
-			m_ImageData[i] = Walnut::Random::UInt();
-			m_ImageData[i] |= 0xff000000;
+			// m_ImageData[i] = Walnut::Random::UInt();
+			// m_ImageData[i] |= 0xff000000;
 		}
 		
 		// This is the bridge. It copies CPU-calculated pixels across the PCIe bus
@@ -66,6 +71,32 @@ public:
 		m_Image->SetData(m_ImageData);
 
 		m_LastRenderTimer = timer.ElapsedMillis();
+	}
+
+	uint32_t CreateCircle(uint32_t x, uint32_t y, float a, float b, float r)
+	{
+		uint32_t empty = 0xff000000;
+		uint32_t filled = 0xffff0000;
+
+		float aspect_ratio = float(m_ViewportWidth) / float(m_ViewportHeight);
+
+		// -> normalization (percentage-based) 
+		// -> multiply by the size of new range
+		// -> substract to move to origin
+		float uv_x = (float(x) / m_ViewportWidth) * 2.0f - 1;
+		float uv_y = (float(y) / m_ViewportHeight) * 2.0f - 1;
+
+		uv_x -= a;
+		uv_y -= b;
+		
+		// Anchor y axis to [-1, 1]. Scale of x axis is dynamicly adjusted
+		uv_x *= aspect_ratio;
+		
+		if ((uv_x * uv_x) + (uv_y * uv_y) <= r * r)
+		{
+			return filled;
+		}
+		return empty;
 	}
 
 private:
