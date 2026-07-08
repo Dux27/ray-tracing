@@ -30,13 +30,13 @@ file(GLOB_RECURSE WALNUT_SOURCES
 
 # 4. Collect source files for your actual application (WalnutApp)
 file(GLOB APP_ROOT_SOURCES
-    "WalnutApp/src/*.cpp"
-    "WalnutApp/src/*.h"
+    "RayTracing/src/*.cpp"
+    "RayTracing/src/*.h"
 )
 
 file(GLOB_RECURSE APP_SUB_SOURCES 
-    "WalnutApp/src/**/*.cpp"
-    "WalnutApp/src/**/*.h"
+    "RayTracing/src/**/*.cpp"
+    "RayTracing/src/**/*.h"
 )
 
 # Merge them together
@@ -49,13 +49,15 @@ file(GLOB IMGUI_SOURCES
 )
 
 # 5. Define target executable
-add_executable(WalnutApp ${WALNUT_SOURCES} ${APP_SOURCES} ${IMGUI_SOURCES})
+add_executable(RayTracingApp ${WALNUT_SOURCES} ${APP_SOURCES} ${IMGUI_SOURCES})
 
 # 6. Link libraries natively (No Windows .lib files needed)
-target_link_libraries(WalnutApp
+target_link_libraries(RayTracingApp
     PRIVATE
     glfw
     Vulkan::Vulkan
     Threads::Threads
     dl
 )
+
+message(STATUS "Current build type is: ${CMAKE_BUILD_TYPE}")
