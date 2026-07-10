@@ -17,7 +17,7 @@ public:
 
 private:
 	uint32_t PerPixel(glm::vec2 coord);
-	uint32_t CreateCircle(glm::vec2 coord, glm::vec2 pos, float r);
+	uint32_t CreateSphere(glm::vec3 coord, glm::vec3 pos, float radius);
 
 private:
 	std::shared_ptr<Walnut::Image> m_FinalImage;
