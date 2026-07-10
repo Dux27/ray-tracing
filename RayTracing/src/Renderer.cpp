@@ -2,12 +2,12 @@
 
 void Renderer::Render()
 {
-	for (uint32_t y = 0; y < m_FinalImage -> GetHeight(); y++)
+	for (uint32_t y = 0; y < m_FinalImage->GetHeight(); y++)
 	{
-		for (uint32_t x = 0; x < m_FinalImage -> GetWidth(); x++)
+		for (uint32_t x = 0; x < m_FinalImage->GetWidth(); x++)
 		{
-			glm::vec2 coord = { (float)x / (float)m_FinalImage -> GetWidth(), (float)y / (float)m_FinalImage -> GetHeight() };
-			m_ImageData[x + y * m_FinalImage -> GetWidth()] = PerPixel(coord);
+			glm::vec2 coord = { (float)x / (float)m_FinalImage->GetWidth(), (float)y / (float)m_FinalImage -> GetHeight() };
+			m_ImageData[x + y * m_FinalImage->GetWidth()] = PerPixel(coord);
 		}
 	}
 
@@ -48,7 +48,15 @@ uint32_t Renderer::PerPixel(glm::vec2 coord)
 uint32_t Renderer::CreateCircle(glm::vec2 coord, glm::vec2 pos, float r)
 {
 	uint32_t empty = 0xff000000;
-	uint32_t filled = 0xffff0000;
+
+	// Combines color channels into a single 32-bit integer layout:
+	// 0x FF (Alpha) 00 (Blue) 00 (Green) 00 (Red)
+	// - 0xff000000: Sets Alpha to 255 so the pixel is 100% opaque.
+	// - (b << 16) : Shifts the Blue value 2 bytes over into the Blue slot.
+	// - r         : Places the Red value directly into the lowest byte slot.
+	uint8_t red_ch = (uint8_t)(coord.x * 255.0f);
+	uint8_t blue_ch = (uint8_t)(coord.y * 255.0f);
+	uint32_t filled = 0xffff0000 | (blue_ch << 16) | red_ch;
 
 	float aspectRatio = float(m_FinalImage -> GetWidth()) / float(m_FinalImage -> GetHeight());
 
