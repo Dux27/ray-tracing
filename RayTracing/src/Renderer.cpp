@@ -2,15 +2,13 @@
 
 void Renderer::Render()
 {
-	for (uint32_t i = 0; i < m_FinalImage -> GetHeight() * m_FinalImage -> GetWidth(); i++)
+	for (uint32_t y = 0; y < m_FinalImage -> GetHeight(); y++)
 	{
-		int x = i % m_FinalImage -> GetWidth();
-		int y = i / m_FinalImage -> GetWidth();
-		m_ImageData[i] = CreateCircle(x, y, 0, 0, 0.4);
-		
-		// RGBA is reversed: ABGR
-		// m_ImageData[i] = Walnut::Random::UInt();
-		// m_ImageData[i] |= 0xff000000;
+		for (uint32_t x = 0; x < m_FinalImage -> GetWidth(); x++)
+		{
+			glm::vec2 coord = { (float)x / (float)m_FinalImage -> GetWidth(), (float)y / (float)m_FinalImage -> GetHeight() };
+			m_ImageData[x + y * m_FinalImage -> GetWidth()] = PerPixel(coord);
+		}
 	}
 
 	// This is the bridge. It copies CPU-calculated pixels across the PCIe bus
@@ -42,26 +40,30 @@ void Renderer::OnResize(uint32_t width, uint32_t height)
 	m_ImageData = new uint32_t[height * width];
 }
 
-uint32_t Renderer::CreateCircle(uint32_t x, uint32_t y, float a, float b, float r)
+uint32_t Renderer::PerPixel(glm::vec2 coord)
+{
+	return CreateCircle(coord, {0.0, 0.0}, 0.4);
+}
+
+uint32_t Renderer::CreateCircle(glm::vec2 coord, glm::vec2 pos, float r)
 {
 	uint32_t empty = 0xff000000;
 	uint32_t filled = 0xffff0000;
 
-	float aspect_ratio = float(m_FinalImage -> GetWidth()) / float(m_FinalImage -> GetHeight());
+	float aspectRatio = float(m_FinalImage -> GetWidth()) / float(m_FinalImage -> GetHeight());
 
-	// -> normalization (percentage-based) 
+	glm::vec2 imageSize = {m_FinalImage -> GetWidth(), m_FinalImage -> GetHeight()};
+	// -> normalization (percentage-based) is done in the main loop
 	// -> multiply by the size of new range
 	// -> substract to move to origin
-	float uv_x = (float(x) / m_FinalImage -> GetWidth()) * 2.0f - 1;
-	float uv_y = (float(y) / m_FinalImage -> GetHeight()) * 2.0f - 1;
+	glm::vec2 uv = coord * 2.0f - 1.0f;
 
-	uv_x -= a;
-	uv_y -= b;
+	uv -= pos;
 	
 	// Anchor y axis to [-1, 1]. Scale of x axis is dynamicly adjusted
-	uv_x *= aspect_ratio;
+	uv.x *= aspectRatio;
 	
-	if ((uv_x * uv_x) + (uv_y * uv_y) <= r * r)
+	if ((uv.x * uv.x) + (uv.y * uv.y) <= r * r)
 	{
 		return filled;
 	}
